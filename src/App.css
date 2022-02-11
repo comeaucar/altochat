@@ -1,0 +1,23 @@
+.main {
+  margin: 30px;
+}
+
+.chatMessage {
+  border-style: outset;
+  border-left: 10px solid blue;
+  border-bottom: 5px solid black;
+}
+
+.chatMessageTo {
+  border-style: outset;
+  border-left: 10px solid green;
+  border-bottom: 5px solid black;
+}
+
+.messageH{
+  margin-left: 10px;
+}
+
+.messageT{
+  margin-left: 20px;
+}
