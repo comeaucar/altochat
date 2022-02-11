@@ -11,7 +11,7 @@ import {
   ProgressBar,
   Toast,
   ToastContainer,
-  Form
+  Form,
 } from "react-bootstrap";
 
 const SOCKET_ENDPOINT = "http://localhost:3001";
@@ -25,23 +25,19 @@ export default function Chatroom() {
   const [currMessage, setCurrMessage] = useState("");
   const [socketId, setSocketId] = useState("");
   const [socket, setSocket] = useState();
-  const [typingUser, setTypingUser] = useState("");
   const navigate = useNavigate();
-  const [showNoMessages, setShowNoMessages] = useState(false);
   const [messageValid, setMessageValid] = useState(false);
   const [messageInvalid, setMessageInvalid] = useState(false);
   const [userIsTyping, setUserIsTyping] = useState(false);
-  const [timeout, setTimeout] = useState(undefined);
   const [userJoined, setUserJoined] = useState(false);
-  const [toastText, setToastText] = useState({ title: "", body: "" });
-  const messagesEndRef = useRef(null)
-  const userJoinedRef = useRef(null)
+  const messagesEndRef = useRef(null);
+  const userJoinedRef = useRef(null);
 
   useEffect(async () => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
     if (!loggedInUser || params.sendingUser != loggedInUser.username) {
       if (socket) {
-        backHome()
+        backHome();
       } else {
         navigate("/", { replace: true });
       }
@@ -64,13 +60,10 @@ export default function Chatroom() {
       })
       .catch((err) => console.log(err));
 
-    if (messages.length === 0) {
-      setShowNoMessages(true);
-    }
 
     if (authed) {
       const socket = io(SOCKET_ENDPOINT);
-      localStorage.setItem('socket', socket)
+      localStorage.setItem("socket", socket);
       setSocket(socket);
       socket.emit("connected", {
         user: localStorage.getItem("user"),
@@ -91,12 +84,12 @@ export default function Chatroom() {
   }, []);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
-    scrollToToast()
-  }, [userJoined])
+    scrollToToast();
+  }, [userJoined]);
 
   const onMsg = (e) => {
     setCurrMessage(e.target.value);
@@ -118,19 +111,19 @@ export default function Chatroom() {
   };
 
   const dismissUserJoined = () => {
-    setUserJoined(false)
-  }
+    setUserJoined(false);
+  };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({behavior: "smooth"})
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const scrollToToast = () => {
-    userJoinedRef.current?.scrollIntoView({behavior: "smooth"})
-  }
+    userJoinedRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const sendMessage = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (currMessage == "") {
       setMessageInvalid(true);
       return;
@@ -174,29 +167,28 @@ export default function Chatroom() {
         Back Home
       </Button>
       <div>
-        <div >
-          <Card style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}} ref={userJoinedRef}>
+        <div>
+          <Card
+            style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
+            ref={userJoinedRef}
+          >
             <Card.Header>
               <h1>
                 Messages
-                  <div style={{ float: "right" }} >
-                    <ToastContainer>
-                      <Toast show={userJoined} onClose={dismissUserJoined}>
-                        <Toast.Header>
-                          <img
-                            src=""
-                            className="rounded me-2"
-                            alt=""
-                          />
-                          <strong className="me-auto">User joined!</strong>
-                          <small className="text-muted">just now</small>
-                        </Toast.Header>
-                        <Toast.Body>
-                          {recievingUser} has joined the chat
-                        </Toast.Body>
-                      </Toast>
-                    </ToastContainer>
-                  </div>
+                <div style={{ float: "right" }}>
+                  <ToastContainer>
+                    <Toast show={userJoined} onClose={dismissUserJoined}>
+                      <Toast.Header>
+                        <img src="" className="rounded me-2" alt="" />
+                        <strong className="me-auto">User joined!</strong>
+                        <small className="text-muted">just now</small>
+                      </Toast.Header>
+                      <Toast.Body>
+                        {recievingUser} has joined the chat
+                      </Toast.Body>
+                    </Toast>
+                  </ToastContainer>
+                </div>
               </h1>
               <h5>
                 Messages between you ({sendingUser}) and {recievingUser}
@@ -233,30 +225,33 @@ export default function Chatroom() {
             animated
             now={currMessage.length * 2}
             label={`${sendingUser} is typing`}
-            style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}}
+            style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
           />
-          <Form onSubmit={(e) => sendMessage(e)} style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}}>
-          <InputGroup className="mb-3" style={{ marginTop: "10px" }}>
-            <Button
-              variant="outline-primary"
-              id="button-addon1"
-              type="submit"
-            >
-              Send
-            </Button>
-            <FormControl
-              placeholder="message"
-              onChange={(e) => onMsg(e)}
-              aria-label="Example text with button addon"
-              aria-describedby="basic-addon1"
-              value={currMessage}
-              isInvalid={messageInvalid}
-              isValid={messageValid}
-              required
-            />
+          <Form
+            onSubmit={(e) => sendMessage(e)}
+            style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
+          >
+            <InputGroup className="mb-3" style={{ marginTop: "10px" }}>
+              <Button
+                variant="outline-primary"
+                id="button-addon1"
+                type="submit"
+              >
+                Send
+              </Button>
+              <FormControl
+                placeholder="message"
+                onChange={(e) => onMsg(e)}
+                aria-label="Example text with button addon"
+                aria-describedby="basic-addon1"
+                value={currMessage}
+                isInvalid={messageInvalid}
+                isValid={messageValid}
+                required
+              />
             </InputGroup>
           </Form>
-          <div ref={ messagesEndRef}/>
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>

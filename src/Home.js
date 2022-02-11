@@ -8,6 +8,7 @@ import {
   FormControl,
   ToastContainer,
   Toast,
+  Form,
 } from "react-bootstrap";
 
 export default function Home() {
@@ -70,14 +71,15 @@ export default function Home() {
   };
   const logoutFunction = () => {
     localStorage.removeItem("jwt");
-    localStorage.removeItem("user")
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
-  const addRoom = () => {
-    if (roomInput == '' || roomInput.length < 3) {
-      alert('Room name is too short')
-      return
+  const addRoom = (e) => {
+    e.preventDefault();
+    if (roomInput == "" || roomInput.length <= 3) {
+      alert("Room name is too short");
+      return;
     }
     setAvailableRooms([...availableRooms, roomInput.toLowerCase()]);
     setRoomInput("");
@@ -118,7 +120,11 @@ export default function Home() {
           onChange={(e) => setRoom(e.target.value)}
         >
           {availableRooms.map((room) => {
-            return <option value={room} key={room}>{room}</option>;
+            return (
+              <option value={room} key={room}>
+                {room}
+              </option>
+            );
           })}
         </select>
         <Button onClick={joinRoom} style={{ marginLeft: "10px" }}>
@@ -149,43 +155,47 @@ export default function Home() {
         )}
       </div>
       <div>
-        <InputGroup className="mb-3" style={{ marginTop: "15px" }}>
-          <FormControl
-            onChange={(e) => roomInputHandler(e)}
-            placeholder="Add custom room"
-            aria-label="Recipient's username"
-            aria-describedby="basic-addon2"
-            value={roomInput}
-          />
-          <Button
-            variant="outline-secondary"
-            id="button-addon2"
-            variant="primary"
-            onClick={addRoom}
-          >
-            Add Room
-          </Button>
-        </InputGroup>
+        <Form onSubmit={(e) => addRoom(e)}>
+          <InputGroup className="mb-3" style={{ marginTop: "15px" }}>
+            <FormControl
+              onChange={(e) => roomInputHandler(e)}
+              placeholder="Add custom room"
+              aria-label="Recipient's username"
+              aria-describedby="basic-addon2"
+              value={roomInput}
+            />
+            <Button
+              variant="outline-secondary"
+              id="button-addon2"
+              variant="primary"
+              type="submit"
+            >
+              Add Room
+            </Button>
+          </InputGroup>
+        </Form>
       </div>
       <div>
-        <InputGroup className="mb-3" style={{ marginTop: "15px" }}>
-          <InputGroup.Text id="basic-addon1">@</InputGroup.Text>
-          <FormControl
-            onChange={(e) => setRecievingUser(e.target.value)}
-            value={recievingUser}
-            placeholder="Recipient's username"
-            aria-label="Recipient's username"
-            aria-describedby="basic-addon2"
-          />
-          <Button
-            variant="outline-secondary"
-            id="button-addon2"
-            variant="primary"
-            onClick={submitHandle}
-          >
-            Message User
-          </Button>
-        </InputGroup>
+        <Form onSubmit={(e) => submitHandle(e)}>
+          <InputGroup className="mb-3" style={{ marginTop: "15px" }}>
+            <InputGroup.Text id="basic-addon1">@</InputGroup.Text>
+            <FormControl
+              onChange={(e) => setRecievingUser(e.target.value)}
+              value={recievingUser}
+              placeholder="Recipient's username"
+              aria-label="Recipient's username"
+              aria-describedby="basic-addon2"
+            />
+            <Button
+              variant="outline-secondary"
+              id="button-addon2"
+              variant="primary"
+              type="submit"
+            >
+              Message User
+            </Button>
+          </InputGroup>
+        </Form>
       </div>
     </div>
   );
