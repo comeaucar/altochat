@@ -75,6 +75,10 @@ export default function Home() {
   };
 
   const addRoom = () => {
+    if (roomInput == '' || roomInput.length < 3) {
+      alert('Room name is too short')
+      return
+    }
     setAvailableRooms([...availableRooms, roomInput.toLowerCase()]);
     setRoomInput("");
     setHideToast(false);
