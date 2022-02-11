@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/altochat/static/css/main.9632d8df.css",
-    "main.js": "/altochat/static/js/main.668d937f.js",
+    "main.js": "/altochat/static/js/main.595dc97e.js",
     "static/js/787.7ea0274a.chunk.js": "/altochat/static/js/787.7ea0274a.chunk.js",
     "index.html": "/altochat/index.html",
     "main.9632d8df.css.map": "/altochat/static/css/main.9632d8df.css.map",
-    "main.668d937f.js.map": "/altochat/static/js/main.668d937f.js.map",
+    "main.595dc97e.js.map": "/altochat/static/js/main.595dc97e.js.map",
     "787.7ea0274a.chunk.js.map": "/altochat/static/js/787.7ea0274a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9632d8df.css",
-    "static/js/main.668d937f.js"
+    "static/js/main.595dc97e.js"
   ]
 }
