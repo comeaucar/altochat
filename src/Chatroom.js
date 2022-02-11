@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 import "./App.css";
@@ -9,6 +9,9 @@ import {
   FormControl,
   Card,
   ProgressBar,
+  Toast,
+  ToastContainer,
+  Form
 } from "react-bootstrap";
 
 const SOCKET_ENDPOINT = "http://localhost:3001";
@@ -18,10 +21,6 @@ export default function Chatroom() {
   const [sendingUser, setSendingUser] = useState(params.sendingUser);
   const [recievingUser, setRecievingUser] = useState(params.recievingUser);
   const [isTyping, setIsTyping] = useState(false);
-  const [message, setMessage] = useState({
-    from_user: "",
-    message: "",
-  });
   const [messages, setMessages] = useState([{}]);
   const [currMessage, setCurrMessage] = useState("");
   const [socketId, setSocketId] = useState("");
@@ -33,11 +32,19 @@ export default function Chatroom() {
   const [messageInvalid, setMessageInvalid] = useState(false);
   const [userIsTyping, setUserIsTyping] = useState(false);
   const [timeout, setTimeout] = useState(undefined);
+  const [userJoined, setUserJoined] = useState(false);
+  const [toastText, setToastText] = useState({ title: "", body: "" });
+  const messagesEndRef = useRef(null)
+  const userJoinedRef = useRef(null)
 
   useEffect(async () => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    if (!loggedInUser) {
-      navigate("/", { replace: true });
+    if (!loggedInUser || params.sendingUser != loggedInUser.username) {
+      if (socket) {
+        backHome()
+      } else {
+        navigate("/", { replace: true });
+      }
     }
     let authed = false;
     await axios
@@ -63,16 +70,33 @@ export default function Chatroom() {
 
     if (authed) {
       const socket = io(SOCKET_ENDPOINT);
+      localStorage.setItem('socket', socket)
       setSocket(socket);
-      socket.emit("connected", localStorage.getItem("user"));
+      socket.emit("connected", {
+        user: localStorage.getItem("user"),
+        recievingUser: recievingUser,
+      });
       socket.on("welcome", (data) => {
         setSocketId(data.socketId);
       });
+
+      socket.on("userHasJoined", (data) => {
+        showUserJoinedToast(data);
+      });
+
       socket.on("incomingMessage", (data) => {
         updateMessages(data);
       });
     }
   }, []);
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    scrollToToast()
+  }, [userJoined])
 
   const onMsg = (e) => {
     setCurrMessage(e.target.value);
@@ -82,30 +106,31 @@ export default function Chatroom() {
       setIsTyping(false);
     }
 
-    if (!userIsTyping) {
-      setUserIsTyping(true);
-      socket.emit("userIsTyping", sendingUser);
-      socket.on("userIsTyping", (data) => {
-        console.log(data);
-        setTypingUser(data);
-      });
-      setTimeout(timeoutFunction, 5000);
-    } else {
-      clearTimeout(timeout);
-      setTimeout(timeoutFunction, 5000);
-    }
-  };
-
-  const timeoutFunction = () => {
-    setUserIsTyping(false);
-    socket.emit("userStoppedTyping", sendingUser);
+    setUserIsTyping(true);
   };
 
   const updateMessages = (msgObj) => {
     setMessages((prev) => [...prev, msgObj]);
   };
 
-  const sendMessage = () => {
+  const showUserJoinedToast = () => {
+    setUserJoined(true);
+  };
+
+  const dismissUserJoined = () => {
+    setUserJoined(false)
+  }
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({behavior: "smooth"})
+  }
+
+  const scrollToToast = () => {
+    userJoinedRef.current?.scrollIntoView({behavior: "smooth"})
+  }
+
+  const sendMessage = (e) => {
+    e.preventDefault()
     if (currMessage == "") {
       setMessageInvalid(true);
       return;
@@ -149,12 +174,32 @@ export default function Chatroom() {
         Back Home
       </Button>
       <div>
-        <div>
-          <Card>
+        <div >
+          <Card style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}} ref={userJoinedRef}>
             <Card.Header>
-              <h1>Messages</h1>
+              <h1>
+                Messages
+                  <div style={{ float: "right" }} >
+                    <ToastContainer>
+                      <Toast show={userJoined} onClose={dismissUserJoined}>
+                        <Toast.Header>
+                          <img
+                            src=""
+                            className="rounded me-2"
+                            alt=""
+                          />
+                          <strong className="me-auto">User joined!</strong>
+                          <small className="text-muted">just now</small>
+                        </Toast.Header>
+                        <Toast.Body>
+                          {recievingUser} has joined the chat
+                        </Toast.Body>
+                      </Toast>
+                    </ToastContainer>
+                  </div>
+              </h1>
               <h5>
-                Messages between {sendingUser} to {recievingUser}
+                Messages between you ({sendingUser}) and {recievingUser}
               </h5>
               <h6>Your socket-id: {socketId}</h6>
             </Card.Header>
@@ -170,7 +215,7 @@ export default function Chatroom() {
                 );
               } else {
                 return (
-                  <Card bg="warning" text="dark" border="dark">
+                  <Card bg="success" text="light" border="dark">
                     <Card.Body>
                       <Card.Title>{m.from_user}</Card.Title>
                       <Card.Text>{m.message}</Card.Text>
@@ -188,12 +233,14 @@ export default function Chatroom() {
             animated
             now={currMessage.length * 2}
             label={`${sendingUser} is typing`}
+            style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}}
           />
+          <Form onSubmit={(e) => sendMessage(e)} style={{width: '70rem', marginLeft: 'auto', marginRight:'auto'}}>
           <InputGroup className="mb-3" style={{ marginTop: "10px" }}>
             <Button
               variant="outline-primary"
               id="button-addon1"
-              onClick={sendMessage}
+              type="submit"
             >
               Send
             </Button>
@@ -207,7 +254,9 @@ export default function Chatroom() {
               isValid={messageValid}
               required
             />
-          </InputGroup>
+            </InputGroup>
+          </Form>
+          <div ref={ messagesEndRef}/>
         </div>
       </div>
     </div>
