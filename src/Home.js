@@ -26,6 +26,7 @@ export default function Home() {
   const [hideToast, setHideToast] = useState(true);
 
   useEffect(() => {
+    document.body.style.background = '#e6e0bb'
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("jwt");
     axios
@@ -95,7 +96,7 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div style={{color: '#e6e0bb'}}>
       <Alert variant="success">
         <Alert.Heading>
           Welcome <b>{user.username}</b>

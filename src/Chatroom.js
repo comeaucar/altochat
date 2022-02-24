@@ -8,10 +8,10 @@ import {
   InputGroup,
   FormControl,
   Card,
-  ProgressBar,
   Toast,
   ToastContainer,
   Form,
+  Spinner
 } from "react-bootstrap";
 
 const SOCKET_ENDPOINT = "http://localhost:3001";
@@ -28,10 +28,11 @@ export default function Chatroom() {
   const navigate = useNavigate();
   const [messageValid, setMessageValid] = useState(false);
   const [messageInvalid, setMessageInvalid] = useState(false);
-  const [userIsTyping, setUserIsTyping] = useState(false);
   const [userJoined, setUserJoined] = useState(false);
+  const [userLeft, setUserLeft] = useState(false)
   const messagesEndRef = useRef(null);
   const userJoinedRef = useRef(null);
+  const [toastText, setToastText] = useState('')
 
   useEffect(async () => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
@@ -60,7 +61,6 @@ export default function Chatroom() {
       })
       .catch((err) => console.log(err));
 
-
     if (authed) {
       const socket = io(SOCKET_ENDPOINT);
       localStorage.setItem("socket", socket);
@@ -77,6 +77,10 @@ export default function Chatroom() {
         showUserJoinedToast(data);
       });
 
+      socket.on("userHasLeft", (data) => {
+      showUserLeftToast(data)
+    })
+
       socket.on("incomingMessage", (data) => {
         updateMessages(data);
       });
@@ -89,9 +93,11 @@ export default function Chatroom() {
 
   useEffect(() => {
     scrollToToast();
-  }, [userJoined]);
+  }, [userJoined, userLeft]);
+
 
   const onMsg = (e) => {
+    setIsTyping(true)
     setCurrMessage(e.target.value);
     setMessageValid(false);
     setMessageInvalid(false);
@@ -99,7 +105,6 @@ export default function Chatroom() {
       setIsTyping(false);
     }
 
-    setUserIsTyping(true);
   };
 
   const updateMessages = (msgObj) => {
@@ -107,11 +112,18 @@ export default function Chatroom() {
   };
 
   const showUserJoinedToast = () => {
+    setToastText('joined')
     setUserJoined(true);
   };
 
+  const showUserLeftToast = () => {
+    setToastText('left')
+    setUserLeft(true)
+  }
+
   const dismissUserJoined = () => {
     setUserJoined(false);
+    setUserLeft(false)
   };
 
   const scrollToBottom = () => {
@@ -149,42 +161,44 @@ export default function Chatroom() {
       })
       .catch((err) => console.log(err));
     setCurrMessage("");
+    setIsTyping(false)
   };
 
-  const backHome = () => {
+  const backHome = async() => {
+    await socket.emit('disconnected', {recievingUser: recievingUser})
     socket.removeAllListeners();
     socket.disconnect(true);
     navigate("/home");
   };
 
+
   return (
-    <div>
+    <div ref={userJoinedRef}>
       <Button
-        variant="success"
         onClick={backHome}
-        style={{ marginBottom: "10px" }}
+        style={{ marginBottom: "10px", backgroundColor: "#111247" }}
+      
       >
-        Back Home
+        Leave
       </Button>
       <div>
         <div>
           <Card
             style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
-            ref={userJoinedRef}
           >
-            <Card.Header>
+            <Card.Header style={{backgroundColor:'#111247', color:'white'}}>
               <h1>
                 Messages
                 <div style={{ float: "right" }}>
                   <ToastContainer>
-                    <Toast show={userJoined} onClose={dismissUserJoined}>
+                    <Toast show={userJoined || userLeft} onClose={dismissUserJoined}>
                       <Toast.Header>
                         <img src="" className="rounded me-2" alt="" />
-                        <strong className="me-auto">User joined!</strong>
+                        <strong className="me-auto">User { toastText}!</strong>
                         <small className="text-muted">just now</small>
                       </Toast.Header>
                       <Toast.Body>
-                        {recievingUser} has joined the chat
+                        {recievingUser} has {toastText} the chat
                       </Toast.Body>
                     </Toast>
                   </ToastContainer>
@@ -221,19 +235,17 @@ export default function Chatroom() {
       </div>
       <div>
         <div style={{ marginTop: "10px" }}>
-          <ProgressBar
-            animated
-            now={currMessage.length * 2}
-            label={`${sendingUser} is typing`}
-            style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
-          />
+          {isTyping ?
+          <div style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}>
+            <Spinner animation="grow" size="sm" /><p style={{display: 'inline-block', marginLeft: '10px'}}>{sendingUser} is typing</p>
+            </div>: <div style={{ width: "70rem", marginLeft: "auto", marginRight: "auto", marginTop:'40px' }}></div> }
           <Form
             onSubmit={(e) => sendMessage(e)}
             style={{ width: "70rem", marginLeft: "auto", marginRight: "auto" }}
           >
             <InputGroup className="mb-3" style={{ marginTop: "10px" }}>
               <Button
-                variant="outline-primary"
+                style={{backgroundColor: "#111247" }}
                 id="button-addon1"
                 type="submit"
               >
@@ -249,6 +261,13 @@ export default function Chatroom() {
                 isValid={messageValid}
                 required
               />
+              <Button
+                style={{backgroundColor: '#746c7c'}}
+                id="button-addon1"
+                onClick={scrollToToast}
+              >
+                Go to top
+              </Button>
             </InputGroup>
           </Form>
           <div ref={messagesEndRef} />
