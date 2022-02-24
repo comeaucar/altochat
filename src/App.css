@@ -21,3 +21,12 @@
 .messageT{
   margin-left: 20px;
 }
+
+.mainBtn{
+  background-color: "#111247";
+}
+
+.mainBtn:hover {
+  background-color: white;
+  color: "#111247";
+}

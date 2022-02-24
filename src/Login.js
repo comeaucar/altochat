@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import logo from './img/7be60f8221eb4916bcfeef93d99c3880.png'
 
 export default function Login() {
   const [user, setUser] = useState({ username: "", password: "" });
@@ -9,6 +10,7 @@ export default function Login() {
 
   useEffect(() => {
     //const loggedInUser = localStorage.getItem("user");
+    document.body.style.background = '#e6e0bb'
     const token = localStorage.getItem('jwt')
     if (token) {
       axios.get('http://localhost:3001/user/authenticateUser', {
@@ -68,15 +70,10 @@ export default function Login() {
   }
 
   return (
+    
     <div className="main">
-      <Alert variant="success">
-        <Alert.Heading>Welcome to the chat app</Alert.Heading>
-        <hr />
-        <p className="mb-0">
-          Login if you already have an account, or register to create one
-        </p>
-      </Alert>
-      <Form onSubmit={loginSubmit}>
+      <img src={logo} />
+      <Form onSubmit={loginSubmit} style={{width: '30%'}}>
         <Form.Group className="mb-3">
           <Form.Label>Username</Form.Label>
           <Form.Control
@@ -98,6 +95,7 @@ export default function Login() {
         </Button>
       </Form>
       <Button variant='secondary' style={{marginTop:'10px'}} onClick={toRegister}>Register</Button>
-    </div>
+      </div>
+      
   );
 }
