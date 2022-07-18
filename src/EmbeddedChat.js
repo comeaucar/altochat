@@ -57,11 +57,11 @@ export default function Chatroom() {
       .then((res) => {
         userExists = true;
         if (
-          !localStorage.getItem("user") ||
-          localStorage.getItem("user") != sendingUser
+          !localStorage.getItem("apiuser") ||
+          localStorage.getItem("apiuser") != sendingUser
         ) {
           localStorage.setItem(
-            "user",
+            "apiuser",
             JSON.stringify({ username: sendingUser })
           );
         }
@@ -84,7 +84,7 @@ export default function Chatroom() {
           if (res.status == 200) {
             userExists = true;
             localStorage.setItem(
-              "user",
+              "apiuser",
               JSON.stringify({ username: sendingUser })
             );
           }
@@ -96,10 +96,14 @@ export default function Chatroom() {
 
     if (userExists) {
       console.log("here");
-      const loggedInUser = JSON.parse(localStorage.getItem("user"));
+      const loggedInUser = JSON.parse(localStorage.getItem("apiuser"));
       if (!loggedInUser || params.sendingUser != loggedInUser.username) {
         if (socket) {
-          navigate("/");
+          const win = window.open(
+            "http://localhost:3002/chat/" + sendingUser,
+            "_blank"
+          );
+          win.focus();
           return;
         }
       }
@@ -128,8 +132,11 @@ export default function Chatroom() {
             setMessages(res.data.messages);
             authed = true;
           } else {
-            console.log("not authed");
-            navigate("/");
+            const win = window.open(
+              "http://localhost:3002/chat/" + sendingUser,
+              "_blank"
+            );
+            win.focus();
           }
         })
         .catch((err) => console.log(err));
@@ -142,7 +149,7 @@ export default function Chatroom() {
         localStorage.setItem("socket", socket);
         setSocket(socket);
         socket.emit("connected", {
-          user: localStorage.getItem("user"),
+          user: localStorage.getItem("apiuser"),
           recievingUser: recievingUser,
         });
         socket.on("welcome", (data) => {
@@ -243,7 +250,10 @@ export default function Chatroom() {
     await socket.emit("disconnected", { recievingUser: recievingUser });
     socket.removeAllListeners();
     socket.disconnect(true);
-    navigate("/home");
+    localStorage.removeItem('apiuser')
+    localStorage.removeItem('socket')
+    localStorage.removeItem('jwt')
+    window.open("http://localhost:3002/chat/" + sendingUser, "_self");
   };
 
   const clickCreateOffer = () => {
